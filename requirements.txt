@@ -4,6 +4,7 @@ flask-pymongo
 pymongo
 weasyprint
 python-dotenv
-eventlet
+gevent
+gevent-websocket
 gunicorn
 dnspython

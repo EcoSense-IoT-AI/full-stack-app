@@ -16,7 +16,7 @@ app.config["MONGO_URI"] = os.getenv("MONGO_URI")
 app.config['SECRET_KEY'] = 'secret!'
 
 mongo = PyMongo(app)
-socketio = SocketIO(app, async_mode='eventlet')
+socketio = SocketIO(app, cors_allowed_origins="*")
 
 # Helper to serialize MongoDB documents
 def serialize_doc(doc):
@@ -130,4 +130,4 @@ def generate_report():
 
 if __name__ == '__main__':
     socketio.start_background_task(background_thread)
-    socketio.run(app, debug=True, host='0.0.0.0', port=5000)
+    socketio.run(app, debug=True, port=5000)
