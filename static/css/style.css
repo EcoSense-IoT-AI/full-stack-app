@@ -83,14 +83,12 @@ h6 {
     color: var(--text-secondary) !important;
     transition: var(--transition);
     border-radius: 8px;
-    margin: 0 10px;
 }
 
 .list-group-item:hover,
 .list-group-item.active {
     background: rgba(56, 189, 248, 0.1) !important;
     color: var(--accent-primary) !important;
-    transform: translateX(5px);
 }
 
 .list-group-item i {

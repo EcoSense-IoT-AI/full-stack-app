@@ -5,52 +5,141 @@
     <meta charset="UTF-8">
     <title>Industrial Air Quality Audit</title>
     <style>
+        @page {
+            size: A4;
+            margin: 2cm;
+        }
+
         body {
-            font-family: sans-serif;
+            font-family: 'Helvetica', 'Arial', sans-serif;
+            color: #333;
+            line-height: 1.6;
+            font-size: 12px;
         }
 
         .header {
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 40px;
+            border-bottom: 2px solid #2c3e50;
+            padding-bottom: 20px;
         }
 
         .logo {
-            font-size: 24px;
+            font-size: 28px;
             font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            font-size: 14px;
+            color: #7f8c8d;
+        }
+
+        h1 {
+            font-size: 24px;
+            margin: 0;
             color: #2c3e50;
         }
 
         .section {
-            margin-bottom: 20px;
+            margin-bottom: 30px;
         }
 
         .section-title {
-            font-size: 18px;
+            font-size: 16px;
             font-weight: bold;
-            border-bottom: 2px solid #eee;
+            color: #2c3e50;
+            border-bottom: 1px solid #bdc3c7;
             padding-bottom: 5px;
-            margin-bottom: 10px;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+        }
+
+        .summary-grid {
+            display: table;
+            width: 100%;
+            margin-bottom: 20px;
+            page-break-inside: avoid;
+        }
+
+        .summary-item {
+            display: table-cell;
+            width: 33%;
+            text-align: center;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border: 1px solid #e9ecef;
+        }
+
+        .summary-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2c3e50;
+            display: block;
+        }
+
+        .summary-label {
+            font-size: 10px;
+            text-transform: uppercase;
+            color: #7f8c8d;
+            letter-spacing: 1px;
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
+            font-size: 11px;
+            page-break-inside: avoid;
         }
 
         th,
         td {
-            border: 1px solid #ddd;
-            padding: 8px;
+            border: 1px solid #e9ecef;
+            padding: 10px;
             text-align: left;
         }
 
         th {
-            background-color: #f2f2f2;
+            background-color: #2c3e50;
+            color: white;
+            font-weight: 600;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+
+        .chart-container {
+            text-align: center;
+            margin-bottom: 20px;
+            page-break-inside: avoid;
+        }
+
+        .chart-img {
+            width: 100%;
+            max-height: 300px;
+            object-fit: contain;
+            border: 1px solid #e9ecef;
+            padding: 5px;
         }
 
         .alert {
-            color: red;
+            color: #e74c3c;
+            font-weight: bold;
+        }
+
+        .footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-size: 10px;
+            color: #95a5a6;
+            border-top: 1px solid #eee;
+            padding-top: 10px;
         }
     </style>
 </head>
@@ -58,72 +147,121 @@
 <body>
     <div class="header">
         <div class="logo">AirGuard Industrial</div>
-        <h1>Industrial Air Quality Audit</h1>
-        <p>Generated on: {{ generated_at }}</p>
+        <h1>Daily Air Quality Audit Report</h1>
+        <p class="subtitle">Generated on: {{ generated_at }}</p>
     </div>
 
+    <!-- Executive Summary -->
     <div class="section">
         <div class="section-title">1. Executive Summary</div>
-        <p><strong>Health Score:</strong> {{ health_score }}/100</p>
-        <p><strong>Ventilation Triggered:</strong> {{ ventilation_count }} times</p>
-        <p><strong>Total Incidents:</strong> {{ incidents_count }}</p>
+        <div class="summary-grid">
+            <div class="summary-item">
+                <span class="summary-value"
+                    style="color: {% if health_score > 80 %}#27ae60{% elif health_score > 50 %}#f39c12{% else %}#c0392b{% endif %}">
+                    {{ health_score }}/100
+                </span>
+                <span class="summary-label">Overall Health Score</span>
+            </div>
+            <div class="summary-item">
+                <span class="summary-value">{{ ventilation_count }}</span>
+                <span class="summary-label">Ventilation Triggers</span>
+            </div>
+            <div class="summary-item">
+                <span class="summary-value">{{ incidents_count }}</span>
+                <span class="summary-label">Pollution Incidents</span>
+            </div>
+        </div>
     </div>
 
+    <!-- Visual Analysis -->
     <div class="section">
-        <div class="section-title">2. Statistical Overview (Last 24h)</div>
+        <div class="section-title">2. Visual Analysis (Last 24 Hours)</div>
+
+        <div class="chart-container">
+            <img src="data:image/png;base64,{{ plot_co2 }}" class="chart-img" alt="CO2 Chart">
+        </div>
+
+        <div class="chart-container">
+            <img src="data:image/png;base64,{{ plot_pm25 }}" class="chart-img" alt="PM2.5 Chart">
+        </div>
+
+        <div class="chart-container">
+            <img src="data:image/png;base64,{{ plot_env }}" class="chart-img" alt="Environment Chart">
+        </div>
+    </div>
+
+    <!-- Statistical Overview -->
+    <div class="section">
+        <div class="section-title">3. Statistical Overview</div>
         <table>
             <thead>
                 <tr>
-                    <th>Sensor</th>
-                    <th>Min</th>
-                    <th>Max</th>
+                    <th>Sensor Metric</th>
+                    <th>Minimum</th>
+                    <th>Maximum</th>
                     <th>Average</th>
+                    <th>Status</th>
                 </tr>
             </thead>
             <tbody>
                 <tr>
-                    <td>CO2 (ppm)</td>
+                    <td><strong>CO2 (ppm)</strong></td>
                     <td>{{ stats.co2.min }}</td>
                     <td>{{ stats.co2.max }}</td>
                     <td>{{ stats.co2.avg }}</td>
+                    <td>
+                        {% if stats.co2.avg < 800 %} <span style="color: #27ae60;">Normal</span>
+                            {% elif stats.co2.avg < 1200 %} <span style="color: #f39c12;">Warning</span>
+                                {% else %} <span style="color: #c0392b;">Critical</span>
+                                {% endif %}
+                    </td>
                 </tr>
                 <tr>
-                    <td>PM2.5 (µg/m³)</td>
+                    <td><strong>PM2.5 (µg/m³)</strong></td>
                     <td>{{ stats.pm25.min }}</td>
                     <td>{{ stats.pm25.max }}</td>
                     <td>{{ stats.pm25.avg }}</td>
+                    <td>
+                        {% if stats.pm25.avg < 12 %} <span style="color: #27ae60;">Good</span>
+                            {% elif stats.pm25.avg < 35 %} <span style="color: #f39c12;">Moderate</span>
+                                {% else %} <span style="color: #c0392b;">Unhealthy</span>
+                                {% endif %}
+                    </td>
                 </tr>
                 <tr>
-                    <td>Temperature (°C)</td>
+                    <td><strong>Temperature (°C)</strong></td>
                     <td>{{ stats.temp.min }}</td>
                     <td>{{ stats.temp.max }}</td>
                     <td>{{ stats.temp.avg }}</td>
+                    <td>-</td>
                 </tr>
                 <tr>
-                    <td>Humidity (%)</td>
+                    <td><strong>Humidity (%)</strong></td>
                     <td>{{ stats.hum.min }}</td>
                     <td>{{ stats.hum.max }}</td>
                     <td>{{ stats.hum.avg }}</td>
+                    <td>-</td>
                 </tr>
             </tbody>
         </table>
     </div>
 
+    <!-- Incidents Log -->
     <div class="section">
-        <div class="section-title">3. Incidents Log (Polluted Events)</div>
+        <div class="section-title">4. Incidents Log (Polluted Events)</div>
         {% if incidents %}
         <table>
             <thead>
                 <tr>
-                    <th>Time</th>
-                    <th>Prediction</th>
-                    <th>Source</th>
+                    <th style="width: 25%;">Time</th>
+                    <th style="width: 25%;">Prediction</th>
+                    <th style="width: 50%;">Source Analysis</th>
                 </tr>
             </thead>
             <tbody>
                 {% for incident in incidents %}
                 <tr>
-                    <td>{{ incident.timestamp }}</td>
+                    <td>{{ incident.timestamp.strftime('%H:%M:%S') }}</td>
                     <td class="alert">{{ incident.analysis.prediction }}</td>
                     <td>{{ incident.analysis.source }}</td>
                 </tr>
@@ -131,8 +269,15 @@
             </tbody>
         </table>
         {% else %}
-        <p>No incidents recorded in the last 24 hours.</p>
+        <div
+            style="padding: 20px; background: #f8f9fa; text-align: center; color: #7f8c8d; border: 1px dashed #bdc3c7;">
+            No pollution incidents recorded in the last 24 hours. System operating within normal parameters.
+        </div>
         {% endif %}
+    </div>
+
+    <div class="footer">
+        AirGuard IoT Dashboard &copy; 2024 - Automated System Report
     </div>
 </body>
 

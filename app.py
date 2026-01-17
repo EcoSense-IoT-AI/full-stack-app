@@ -90,6 +90,8 @@ def generate_report():
     if not readings:
         return "No data available for report", 404
 
+    # Prepare data for charts
+    timestamps = [r['timestamp'] for r in readings if 'sensors' in r]
     co2_values = [r['sensors']['co2'] for r in readings if 'sensors' in r]
     pm25_values = [r['sensors']['pm25'] for r in readings if 'sensors' in r]
     temp_values = [r['sensors']['temp'] for r in readings if 'sensors' in r]
@@ -101,6 +103,52 @@ def generate_report():
         'temp': {'min': min(temp_values) if temp_values else 0, 'max': max(temp_values) if temp_values else 0, 'avg': round(sum(temp_values)/len(temp_values), 2) if temp_values else 0},
         'hum': {'min': min(hum_values) if hum_values else 0, 'max': max(hum_values) if hum_values else 0, 'avg': round(sum(hum_values)/len(hum_values), 2) if hum_values else 0}
     }
+
+    # Generate Charts
+    import matplotlib.pyplot as plt
+    import io
+    import base64
+    import matplotlib.dates as mdates
+
+    # Set backend to Agg to avoid GUI issues
+    plt.switch_backend('Agg')
+
+    def create_plot(x, y, title, ylabel, color, y2=None, y2_label=None, y2_color=None):
+        fig, ax1 = plt.subplots(figsize=(10, 4))
+        
+        # Plot 1
+        ax1.plot(x, y, color=color, label=ylabel)
+        ax1.set_xlabel('Time')
+        ax1.set_ylabel(ylabel, color=color)
+        ax1.tick_params(axis='y', labelcolor=color)
+        ax1.grid(True, linestyle='--', alpha=0.7)
+        
+        # Format x-axis
+        ax1.xaxis.set_major_formatter(mdates.DateFormatter('%H:%M'))
+        plt.xticks(rotation=45)
+        
+        # Plot 2 (Optional)
+        if y2 is not None:
+            ax2 = ax1.twinx()
+            ax2.plot(x, y2, color=y2_color, label=y2_label)
+            ax2.set_ylabel(y2_label, color=y2_color)
+            ax2.tick_params(axis='y', labelcolor=y2_color)
+        
+        plt.title(title)
+        plt.tight_layout()
+        
+        # Save to buffer
+        buf = io.BytesIO()
+        plt.savefig(buf, format='png', dpi=100)
+        buf.seek(0)
+        plot_url = base64.b64encode(buf.getvalue()).decode('utf8')
+        plt.close()
+        return plot_url
+
+    # Create plots
+    plot_co2 = create_plot(timestamps, co2_values, 'CO2 Levels (Last 24h)', 'CO2 (ppm)', '#ef4444')
+    plot_pm25 = create_plot(timestamps, pm25_values, 'PM2.5 Levels (Last 24h)', 'PM2.5 (µg/m³)', '#f59e0b')
+    plot_env = create_plot(timestamps, temp_values, 'Temperature & Humidity', 'Temp (°C)', '#3b82f6', hum_values, 'Humidity (%)', '#10b981')
 
     # Count Ventilation Triggers
     ventilation_count = sum(1 for r in readings if r.get('actuators', {}).get('ventilation') == 'ON')
@@ -119,7 +167,10 @@ def generate_report():
                            ventilation_count=ventilation_count,
                            incidents=incidents,
                            incidents_count=incidents_count,
-                           health_score=health_score)
+                           health_score=health_score,
+                           plot_co2=plot_co2,
+                           plot_pm25=plot_pm25,
+                           plot_env=plot_env)
     
     # Generate PDF
     pdf = HTML(string=html).write_pdf()
