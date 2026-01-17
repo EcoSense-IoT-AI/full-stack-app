@@ -1,11 +1,9 @@
 import os
-import eventlet
-eventlet.monkey_patch()
 from flask import Flask, render_template, jsonify, request
 from flask_socketio import SocketIO, emit
 from flask_pymongo import PyMongo
-from bson.json_util import dumps
 import json
+from bson.json_util import dumps
 from datetime import datetime
 from dotenv import load_dotenv
 
