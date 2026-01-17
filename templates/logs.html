@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2 class="mb-4">Data Logs</h2>
+
+<div class="glass-card p-4">
+    <div class="table-responsive">
+        <table id="logsTable" class="table table-hover align-middle">
+            <thead>
+                <tr class="text-secondary">
+                    <th>Timestamp</th>
+                    <th>CO2 (ppm)</th>
+                    <th>PM2.5 (µg/m³)</th>
+                    <th>Temp (°C)</th>
+                    <th>Humidity (%)</th>
+                    <th>Ventilation</th>
+                    <th>Prediction</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for reading in readings %}
+                <tr>
+                    <td>{{ reading.timestamp }}</td>
+                    <td>{{ reading.sensors.co2 }}</td>
+                    <td>{{ reading.sensors.pm25 }}</td>
+                    <td>{{ reading.sensors.temp }}</td>
+                    <td>{{ reading.sensors.hum }}</td>
+                    <td>
+                        {% if reading.actuators.ventilation == 'ON' %}
+                        <span class="badge bg-success bg-opacity-25 text-success">ON</span>
+                        {% else %}
+                        <span class="badge bg-secondary bg-opacity-25 text-secondary">OFF</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if reading.analysis.prediction == 'Polluted' %}
+                        <span class="badge bg-danger bg-opacity-25 text-danger">Polluted</span>
+                        {% else %}
+                        <span class="badge bg-success bg-opacity-25 text-success">Clean</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    <nav aria-label="Page navigation" class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% if page > 1 %}
+            <li class="page-item">
+                <a class="page-link" href="{{ url_for('logs', page=page-1) }}">Previous</a>
+            </li>
+            {% endif %}
+            <li class="page-item disabled">
+                <a class="page-link" href="#">Page {{ page }}</a>
+            </li>
+            {% if (page * per_page) < total %} <li class="page-item">
+                <a class="page-link" href="{{ url_for('logs', page=page+1) }}">Next</a>
+                </li>
+                {% endif %}
+        </ul>
+    </nav>
+</div>
+
+<!-- DataTables CSS/JS -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap5.min.css">
+<script src="https://code.jquery.com/jquery-3.5.1.js"></script>
+<script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap5.min.js"></script>
+
+<script>
+    $(document).ready(function () {
+        $('#logsTable').DataTable({
+            "paging": false,
+            "info": false,
+            "searching": true,
+            "language": {
+                "search": "_INPUT_",
+                "searchPlaceholder": "Search logs..."
+            }
+        });
+
+        // Custom styling for search input
+        $('.dataTables_filter input').addClass('form-control bg-dark text-white border-secondary');
+    });
+</script>
+{% endblock %}

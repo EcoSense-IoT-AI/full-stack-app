@@ -1,0 +1,228 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row g-4 mb-5">
+    <!-- KPI Cards -->
+    <div class="col-md-3">
+        <div class="glass-card p-4 d-flex justify-content-between align-items-center">
+            <div>
+                <p class="text-secondary mb-1">CO2 Level</p>
+                <h3 class="kpi-value mb-0" id="kpi-co2">--</h3>
+                <small class="text-muted">ppm</small>
+            </div>
+            <div class="kpi-icon-wrapper text-info">
+                <i class="fas fa-wind"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="glass-card p-4 d-flex justify-content-between align-items-center">
+            <div>
+                <p class="text-secondary mb-1">PM2.5</p>
+                <h3 class="kpi-value mb-0" id="kpi-pm25">--</h3>
+                <small class="text-muted">µg/m³</small>
+            </div>
+            <div class="kpi-icon-wrapper text-warning">
+                <i class="fas fa-smog"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="glass-card p-4 d-flex justify-content-between align-items-center">
+            <div>
+                <p class="text-secondary mb-1">Temperature</p>
+                <h3 class="kpi-value mb-0" id="kpi-temp">--</h3>
+                <small class="text-muted">°C</small>
+            </div>
+            <div class="kpi-icon-wrapper text-danger">
+                <i class="fas fa-temperature-high"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="glass-card p-4 d-flex justify-content-between align-items-center">
+            <div>
+                <p class="text-secondary mb-1">Humidity</p>
+                <h3 class="kpi-value mb-0" id="kpi-hum">--</h3>
+                <small class="text-muted">%</small>
+            </div>
+            <div class="kpi-icon-wrapper text-primary">
+                <i class="fas fa-tint"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Charts -->
+    <div class="col-md-6">
+        <div class="glass-card p-4 h-100">
+            <h5 class="mb-4"><i class="fas fa-chart-line me-2 text-info"></i>CO2 & Humidity Trends</h5>
+            <canvas id="chart1"></canvas>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="glass-card p-4 h-100">
+            <h5 class="mb-4"><i class="fas fa-chart-area me-2 text-danger"></i>PM2.5 & Temperature Trends</h5>
+            <canvas id="chart2"></canvas>
+        </div>
+    </div>
+</div>
+
+<script>
+    const socket = io();
+
+    // Chart.js Defaults for Dark Theme
+    Chart.defaults.color = '#94a3b8';
+    Chart.defaults.borderColor = 'rgba(255, 255, 255, 0.05)';
+
+    // Initialize Charts
+    const ctx1 = document.getElementById('chart1').getContext('2d');
+
+    // Gradient for CO2
+    const gradientCO2 = ctx1.createLinearGradient(0, 0, 0, 400);
+    gradientCO2.addColorStop(0, 'rgba(56, 189, 248, 0.5)');
+    gradientCO2.addColorStop(1, 'rgba(56, 189, 248, 0)');
+
+    // Gradient for Humidity
+    const gradientHum = ctx1.createLinearGradient(0, 0, 0, 400);
+    gradientHum.addColorStop(0, 'rgba(74, 222, 128, 0.5)');
+    gradientHum.addColorStop(1, 'rgba(74, 222, 128, 0)');
+
+    const chart1 = new Chart(ctx1, {
+        type: 'line',
+        data: {
+            labels: [],
+            datasets: [{
+                label: 'CO2 (ppm)',
+                data: [],
+                borderColor: '#38bdf8',
+                backgroundColor: gradientCO2,
+                borderWidth: 2,
+                fill: true,
+                tension: 0.4,
+                pointRadius: 0,
+                yAxisID: 'y'
+            }, {
+                label: 'Humidity (%)',
+                data: [],
+                borderColor: '#4ade80',
+                backgroundColor: gradientHum,
+                borderWidth: 2,
+                fill: true,
+                tension: 0.4,
+                pointRadius: 0,
+                yAxisID: 'y1'
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { position: 'top' }
+            },
+            scales: {
+                x: { grid: { display: false } },
+                y: {
+                    grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                    position: 'left',
+                    title: { display: true, text: 'CO2' }
+                },
+                y1: {
+                    position: 'right',
+                    grid: { display: false },
+                    title: { display: true, text: 'Humidity' }
+                }
+            }
+        }
+    });
+
+    const ctx2 = document.getElementById('chart2').getContext('2d');
+
+    // Gradient for PM2.5
+    const gradientPM = ctx2.createLinearGradient(0, 0, 0, 400);
+    gradientPM.addColorStop(0, 'rgba(251, 191, 36, 0.5)');
+    gradientPM.addColorStop(1, 'rgba(251, 191, 36, 0)');
+
+    // Gradient for Temp
+    const gradientTemp = ctx2.createLinearGradient(0, 0, 0, 400);
+    gradientTemp.addColorStop(0, 'rgba(248, 113, 113, 0.5)');
+    gradientTemp.addColorStop(1, 'rgba(248, 113, 113, 0)');
+
+    const chart2 = new Chart(ctx2, {
+        type: 'line',
+        data: {
+            labels: [],
+            datasets: [{
+                label: 'PM2.5 (µg/m³)',
+                data: [],
+                borderColor: '#fbbf24',
+                backgroundColor: gradientPM,
+                borderWidth: 2,
+                fill: true,
+                tension: 0.4,
+                pointRadius: 0,
+                yAxisID: 'y'
+            }, {
+                label: 'Temperature (°C)',
+                data: [],
+                borderColor: '#f87171',
+                backgroundColor: gradientTemp,
+                borderWidth: 2,
+                fill: true,
+                tension: 0.4,
+                pointRadius: 0,
+                yAxisID: 'y1'
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                x: { grid: { display: false } },
+                y: {
+                    grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                    position: 'left',
+                    title: { display: true, text: 'PM2.5' }
+                },
+                y1: {
+                    position: 'right',
+                    grid: { display: false },
+                    title: { display: true, text: 'Temperature' }
+                }
+            }
+        }
+    });
+
+    socket.on('update_sensor_data', function (data) {
+        // Update KPIs
+        document.getElementById('kpi-co2').innerText = data.sensors.co2;
+        document.getElementById('kpi-pm25').innerText = data.sensors.pm25;
+        document.getElementById('kpi-temp').innerText = data.sensors.temp;
+        document.getElementById('kpi-hum').innerText = data.sensors.hum;
+
+        // Update Charts
+        const timeLabel = new Date(data.timestamp.$date || data.timestamp).toLocaleTimeString();
+
+        // Chart 1: CO2 & Humidity
+        if (chart1.data.labels.length > 20) {
+            chart1.data.labels.shift();
+            chart1.data.datasets[0].data.shift();
+            chart1.data.datasets[1].data.shift();
+        }
+        chart1.data.labels.push(timeLabel);
+        chart1.data.datasets[0].data.push(data.sensors.co2);
+        chart1.data.datasets[1].data.push(data.sensors.hum);
+        chart1.update();
+
+        // Chart 2: PM2.5 & Temperature
+        if (chart2.data.labels.length > 20) {
+            chart2.data.labels.shift();
+            chart2.data.datasets[0].data.shift();
+            chart2.data.datasets[1].data.shift();
+        }
+        chart2.data.labels.push(timeLabel);
+        chart2.data.datasets[0].data.push(data.sensors.pm25);
+        chart2.data.datasets[1].data.push(data.sensors.temp);
+        chart2.update();
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2 class="mb-4">Hardware Status</h2>
+
+<div class="row g-4">
+    {% for hw in hardwares %}
+    <div class="col-md-4 col-lg-3">
+        <div
+            class="glass-card h-100 p-4 text-center position-relative overflow-hidden {% if hw.status == 'broken' %}status-broken{% else %}status-working{% endif %}">
+
+            <!-- Status Indicator Dot -->
+            <div class="position-absolute top-0 end-0 m-3">
+                <span
+                    class="status-indicator {% if hw.status == 'broken' %}indicator-broken{% else %}indicator-working{% endif %}"></span>
+            </div>
+
+            <div class="mb-3">
+                <div class="d-inline-flex align-items-center justify-content-center rounded-circle"
+                    style="width: 80px; height: 80px; background: rgba(255,255,255,0.05);">
+                    {% if hw.type == 'sensor' %}
+                    <i class="fas fa-wifi fs-2 text-primary"></i>
+                    {% else %}
+                    <i class="fas fa-cogs fs-2 text-warning"></i>
+                    {% endif %}
+                </div>
+            </div>
+
+            <h5 class="card-title mb-1">{{ hw.name }}</h5>
+            <p class="text-secondary small mb-3">ID: {{ hw.hardware_id }}</p>
+
+            <div class="mb-3">
+                {% if hw.status == 'working' %}
+                <span
+                    class="badge bg-success bg-opacity-25 text-success border border-success px-3 py-2 rounded-pill">Working</span>
+                {% else %}
+                <span
+                    class="badge bg-danger bg-opacity-25 text-danger border border-danger px-3 py-2 rounded-pill">Broken</span>
+                {% endif %}
+            </div>
+
+            <div
+                class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top border-secondary border-opacity-25">
+                <small class="text-muted">State</small>
+                <span
+                    class="fw-bold {% if hw.current_state == 'ON' %}text-success{% else %}text-secondary{% endif %}">{{
+                    hw.current_state }}</span>
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center mt-2">
+                <small class="text-muted">Last Seen</small>
+                <small class="text-white">{{ hw.last_communication }}</small>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="col-12">
+        <div class="glass-card p-5 text-center">
+            <i class="fas fa-search fs-1 text-secondary mb-3"></i>
+            <p class="text-muted">No hardware devices found.</p>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}
