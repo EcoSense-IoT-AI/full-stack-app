@@ -6,6 +6,7 @@ import json
 from bson.json_util import dumps
 from datetime import datetime
 from dotenv import load_dotenv
+from threading import Lock
 
 load_dotenv()
 
@@ -15,6 +16,9 @@ app.config['SECRET_KEY'] = 'secret!'
 
 mongo = PyMongo(app)
 socketio = SocketIO(app, cors_allowed_origins="*")
+
+thread = None
+thread_lock = Lock()
 
 # Helper to serialize MongoDB documents
 def serialize_doc(doc):
@@ -37,11 +41,12 @@ def background_thread():
 
 @socketio.on('connect')
 def connect():
+    global thread
     print('Client connected')
-    # Start background thread if not already running
-    # Note: In production with multiple workers, this needs careful handling or a separate worker.
-    # For this simple app, we can start it here or in main block.
-    pass
+    
+    with thread_lock:
+        if thread is None:
+            thread = socketio.start_background_task(background_thread)
 
 @app.route('/')
 def index():
