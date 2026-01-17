@@ -5,3 +5,5 @@ pymongo
 weasyprint
 python-dotenv
 eventlet
+gunicorn
+dnspython
